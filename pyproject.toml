@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "hypernetwork-rl"
+version = "0.1.0"
+description = "Hypernetwork-Based Reinforcement Learning for Control of Parametrized Dynamical Systems"
+requires-python = ">=3.9"
+dependencies = [
+    "torch>=1.13.0",
+    "torchvision>=0.14.0",
+    "numpy>=1.23.0",
+    "wandb>=0.13.0",
+    "tensorboardX>=2.6.0",
+    "tqdm>=4.64.0",
+    "gym==0.26.2",
+    "gymnasium>=0.26.0",
+    "pandas>=1.5.0",
+    "scikit-learn>=1.1.0",
+    "scipy>=1.9.0",
+    "matplotlib>=3.6.0",
+    "imageio>=2.22.0",
+    "Pillow>=9.0.0",
+    "scikit-image>=0.19.0",
+    "opencv-python>=4.6.0",
+    "ipython>=8.0.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["agents*", "deep_control*", "envs*", "utils*"]
