@@ -22,8 +22,19 @@ from deep_control.hypersunrise import SunriseAgent as HyperSunriseAgent, learn_s
 from deep_control import replay
 from deep_control import utils as dc_utils
 
-SUNRISE_AGENTS = {'sunrise', 'hypersunrise'}
-TD3_AGENTS = {'td3', 'td3_noparam', 'hypeRL_td3', 'hypeRL_td3p', 'polyL0_td3', 'd4pg'}
+SUNRISE_AGENTS = {'sunrise', 'hypEMBER'}
+TD3_AGENTS = {'td3', 'td3_noparam', 'hypeRL', 'hypeRL_td3p', 'polyL0_td3', 'd4pg'}
+
+
+# ==========================
+#  ENV FACTORY
+# ==========================
+
+def make_env(args, eval=False):
+    return Gyro(T=args.T, dt=args.dt, parametric_target=args.parametric_target,
+                parametric_gyro=args.parametric_gyro, navigation_mode=args.navigation_mode,
+                rel_position=args.rel_position, seed=args.seed,
+                random_init=args.random_init, eval=eval)
 
 
 # ==========================
@@ -292,7 +303,8 @@ if __name__ == "__main__":
 
     # --- Agent ---
     parser.add_argument('--agent-type', type=str, default='td3',
-                        help='Agent type: td3, td3_noparam, hypeRL_td3, hypeRL_td3p, polyL0_td3, d4pg, sunrise, hypersunrise.')
+                        choices=['td3', 'td3_noparam', 'hypeRL', 'hypeRL_td3p', 'polyL0_td3', 'd4pg', 'sunrise', 'hypEMBER'],
+                        help='Agent type.')
 
     # --- Environment ---
     parser.add_argument('--T', type=int, default=80, help='Episode length (seconds).')
@@ -393,12 +405,8 @@ if __name__ == "__main__":
 
     env_name = 'ParametricGyro' if parametric_gyro else 'Gyro'
 
-    env = Gyro(T=T, dt=dt, parametric_target=parametric_target, parametric_gyro=parametric_gyro,
-               navigation_mode=navigation_mode, rel_position=rel_position,
-               seed=seed, random_init=random_init, eval=False)
-    eval_env = Gyro(T=T, dt=dt, parametric_target=parametric_target, parametric_gyro=parametric_gyro,
-                    navigation_mode=navigation_mode, rel_position=rel_position,
-                    seed=seed, random_init=random_init, eval=True)
+    env = make_env(args, eval=False)
+    eval_env = make_env(args, eval=True)
 
     param_dim = env.param_dim
     state_dim = env.observation_space.shape[0]
@@ -443,7 +451,7 @@ if __name__ == "__main__":
         replay_buffer = TrainingBuffer(state_dim=state_dim, action_dim=action_dim,
                                        device=device, max_size=int(5e6))
 
-    elif agent_type == 'hypeRL_td3':
+    elif agent_type == 'hypeRL':
         agent = hypeRLTD3(state_dim=state_dim, action_dim=action_dim, param_dim=param_dim,
                           max_action=max_action, h_dim=h_dim, tau=tau, device=device,
                           param_repeat=param_repeat)
@@ -482,6 +490,8 @@ if __name__ == "__main__":
             obs_space_size=state_dim, act_space_size=action_dim,
             log_std_low=args.log_std_low, log_std_high=args.log_std_high,
             ensemble_size=args.ensemble_size, ucb_bonus=args.ucb_bonus)
+        agent.to(dc_utils.device)
+        agent.train()
         BufferClass = (replay.PrioritizedReplayBuffer
                        if args.prioritized_replay else replay.ReplayBuffer)
         sunrise_buffer = BufferClass(
@@ -489,11 +499,13 @@ if __name__ == "__main__":
             state_shape=(state_dim,), action_shape=(action_dim,))
         replay_buffer = None
 
-    elif agent_type == 'hypersunrise':
+    elif agent_type == 'hypEMBER':
         agent = HyperSunriseAgent(
             obs_space_size=state_dim, act_space_size=action_dim,
             log_std_low=args.log_std_low, log_std_high=args.log_std_high,
             ensemble_size=args.ensemble_size, ucb_bonus=args.ucb_bonus)
+        agent.to(dc_utils.device)
+        agent.train()
         BufferClass = (replay.PrioritizedReplayBuffer
                        if args.prioritized_replay else replay.ReplayBuffer)
         sunrise_buffer = BufferClass(
