@@ -15,13 +15,12 @@ We study the problem of controlling parametrized dynamical systems using deep re
 
 | Agent | Description |
 |---|---|
-| `td3` | TD3 with parameter as part of the state |
-| `td3_noparam` | TD3 without system parameter in the state |
+| `td3` | TD3 |
 | `hypeRL_td3` | HypeRL: hypernetwork-based TD3 |
-| `hypeRL_td3p` | HypeRL variant with parameter-conditioned heads |
 | `polyL0_td3` | TD3 with polynomial feature expansion (L0 regularization) |
-| `d4pg` | D4PG with distributional critic |
-| `sunrise` / `hypersunrise` | SUNRISE ensemble variants |
+| `sunrise` | SAC with ensemble |
+| `hypEMBER` | SAC with ensemble and hypernetworks |
+
 
 ## Installation
 
@@ -58,27 +57,11 @@ Train on the Gyro environment:
 python train_gyro.py --agent-type hypeRL_td3 --max-episodes 5000 --seed 1
 ```
 
-Train with the SUNRISE ensemble:
-
-```bash
-python sunrise_ks.py --seed 1
-python sunrise_gyro.py --seed 1
-```
-
-### Evaluation
-
-```bash
-python eval_noise_ks.py
-python eval_noise_gyro.py
-python eval_noise_gyro_vorticity.py
-python eval_nu_ks2.py
-```
-
 ### Key arguments (`train_ks.py` / `train_gyro.py`)
 
 | Argument | Default | Description |
 |---|---|---|
-| `--agent-type` | `td3_noparam` | Agent to use |
+| `--agent-type` | `td3` | Agent to use |
 | `--max-episodes` | `2000` | Number of training episodes |
 | `--seed` | `1` | Random seed |
 | `--parametric` | `True` | Randomize system parameter at each episode |
@@ -99,9 +82,5 @@ Run `python train_ks.py --help` for the full list of arguments.
 ├── train_gyro.py        # Training script — Gyro environment
 ├── sunrise_ks.py        # SUNRISE training — KS
 ├── sunrise_gyro.py      # SUNRISE training — Gyro
-├── eval_noise_ks.py     # Evaluation under observation noise — KS
-├── eval_noise_gyro.py   # Evaluation under observation noise — Gyro
-├── eval_noise_gyro_vorticity.py
-├── eval_nu_ks2.py
 └── requirements.txt
 ```
