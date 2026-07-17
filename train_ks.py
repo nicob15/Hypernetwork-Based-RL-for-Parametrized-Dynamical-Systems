@@ -15,12 +15,12 @@ from agents.hypeRL_td3 import TD3 as hypeRLTD3
 from agents.polyL0_td3 import TD3 as polyL0TD3
 from utils.utils import ReplayBuffer as TrainingBuffer
 from deep_control.sunrise import SunriseAgent, learn_sunrise
-from deep_control.hypersunrise import SunriseAgent as HyperSunriseAgent, learn_sunrise as learn_hypersunrise
+from deep_control.hypember import SunriseAgent as HypEMBERAgent, learn_sunrise as learn_hypember
 from deep_control import replay
 from deep_control import utils as dc_utils
 from deep_control.utils import device
 
-SUNRISE_AGENTS = {'sunrise', 'hypEMBER'}
+SUNRISE_AGENTS = {'sunrise', 'hypEMBER', 'hypEMBER_lcb'}
 TD3_AGENTS = {'td3', 'hypeRL', 'polyL0_td3'}
 
 
@@ -59,7 +59,9 @@ def eval_agent(agent, eval_env, eval_episodes, idx, agent_type, best_rew):
         ep_ac = 0.
 
         while not done:
-            if agent_type in SUNRISE_AGENTS:
+            if agent_type == 'hypEMBER_lcb':
+                action = agent.forward_lcb(state)
+            elif agent_type in SUNRISE_AGENTS:
                 action = agent.forward(state)
             else:
                 action = agent.select_action(state)
@@ -279,7 +281,7 @@ if __name__ == "__main__":
 
     # --- Agent ---
     parser.add_argument('--agent-type', type=str, default='td3',
-                        choices=['td3', 'hypeRL', 'hypEMBER', 'sunrise', 'polyL0_td3'],
+                        choices=['td3', 'hypeRL', 'hypEMBER', 'hypEMBER_lcb', 'sunrise', 'polyL0_td3'],
                         help='Agent type: td3, hypeRL, hypEMBER, sunrise, polyL0_td3.')
 
     # --- Environment ---
@@ -419,8 +421,8 @@ if __name__ == "__main__":
                       agent_type=agent_type, sunrise_buffer=sunrise_buffer,
                       learn_fn=learn_sunrise)
 
-    elif agent_type == 'hypEMBER':
-        agent = HyperSunriseAgent(
+    elif agent_type in ('hypEMBER', 'hypEMBER_lcb'):
+        agent = HypEMBERAgent(
             obs_space_size=state_dim, act_space_size=action_dim,
             log_std_low=args.log_std_low, log_std_high=args.log_std_high,
             ensemble_size=args.ensemble_size, ucb_bonus=args.ucb_bonus)
@@ -439,7 +441,7 @@ if __name__ == "__main__":
                       weighted_bellman_temp=args.weighted_bellman_temp,
                       init_alpha=args.init_alpha, log=args.log, seed=args.seed,
                       agent_type=agent_type, sunrise_buffer=sunrise_buffer,
-                      learn_fn=learn_hypersunrise)
+                      learn_fn=learn_hypember)
 
     else:
         raise ValueError(f"Unknown agent type: {agent_type}. "

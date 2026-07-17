@@ -10,20 +10,17 @@ import wandb
 import argparse
 
 from envs.gyro import Gyro
-from agents.td3_noparam import TD3 as TD3noparam
 from agents.td3 import TD3
 from agents.hypeRL_td3 import TD3 as hypeRLTD3
-from agents.hypeRL_td3p import TD3 as hypeRLTD3p
 from agents.polyL0_td3 import TD3 as polyL0TD3
-from agents.d4pg import D4PG
 from utils.utils import ReplayBuffer as TrainingBuffer
 from deep_control.sunrise import SunriseAgent, learn_sunrise
-from deep_control.hypersunrise import SunriseAgent as HyperSunriseAgent, learn_sunrise as learn_hypersunrise
+from deep_control.hypember import SunriseAgent as HypEmberAgent, learn_sunrise as learn_hypember
 from deep_control import replay
 from deep_control import utils as dc_utils
 
-SUNRISE_AGENTS = {'sunrise', 'hypEMBER'}
-TD3_AGENTS = {'td3', 'td3_noparam', 'hypeRL', 'hypeRL_td3p', 'polyL0_td3', 'd4pg'}
+SUNRISE_AGENTS = {'sunrise', 'hypEMBER', 'hypEMBER_lcb'}
+TD3_AGENTS = {'td3', 'hypeRL', 'polyL0_td3'}
 
 
 # ==========================
@@ -303,7 +300,7 @@ if __name__ == "__main__":
 
     # --- Agent ---
     parser.add_argument('--agent-type', type=str, default='td3',
-                        choices=['td3', 'td3_noparam', 'hypeRL', 'hypeRL_td3p', 'polyL0_td3', 'd4pg', 'sunrise', 'hypEMBER'],
+                        choices=['td3', 'hypeRL', 'polyL0_td3', 'sunrise', 'hypEMBER'],
                         help='Agent type.')
 
     # --- Environment ---
@@ -354,16 +351,6 @@ if __name__ == "__main__":
     parser.add_argument('--prioritized-replay', action='store_true',
                         help='Prioritized replay (sunrise).')
 
-    # --- D4PG-specific ---
-    parser.add_argument('--per', type=bool, default=False,
-                        help='Prioritized experience replay (D4PG).')
-    parser.add_argument('--n-step', type=int, default=5, help='n-step return (D4PG).')
-    parser.add_argument('--distributional', type=bool, default=True,
-                        help='Distributional critic (D4PG).')
-    parser.add_argument('--munchausen', type=bool, default=False, help='Munchausen (D4PG).')
-    parser.add_argument('--D2RL', type=bool, default=False, help='D2RL architecture (D4PG).')
-    parser.add_argument('--curiosity', type=bool, default=False, help='Curiosity module (D4PG).')
-
     # --- Logging ---
     parser.add_argument('--log', type=bool, default=True, help='Enable W&B logging.')
 
@@ -388,13 +375,7 @@ if __name__ == "__main__":
     random_init = args.random_init
     save_int = args.save_int
     param_repeat = args.param_repeat
-    per = args.per
     discount = args.discount
-    n_step = args.n_step
-    distributional = args.distributional
-    munchausen = args.munchausen
-    D2RL = args.D2RL
-    curiosity = args.curiosity
     navigation_mode = args.navigation_mode
     rel_position = args.rel_position
 
@@ -444,23 +425,10 @@ if __name__ == "__main__":
         replay_buffer = TrainingBuffer(state_dim=state_dim, action_dim=action_dim,
                                        device=device, max_size=int(5e6))
 
-    elif agent_type == 'td3_noparam':
-        agent = TD3noparam(state_dim=state_dim - param_dim, action_dim=action_dim,
-                           param_dim=param_dim, max_action=max_action, h_dim=h_dim,
-                           tau=tau, device=device, param_repeat=False)
-        replay_buffer = TrainingBuffer(state_dim=state_dim, action_dim=action_dim,
-                                       device=device, max_size=int(5e6))
-
     elif agent_type == 'hypeRL':
         agent = hypeRLTD3(state_dim=state_dim, action_dim=action_dim, param_dim=param_dim,
                           max_action=max_action, h_dim=h_dim, tau=tau, device=device,
                           param_repeat=param_repeat)
-        replay_buffer = TrainingBuffer(state_dim=state_dim, action_dim=action_dim,
-                                       device=device, max_size=int(5e6))
-
-    elif agent_type == 'hypeRL_td3p':
-        agent = hypeRLTD3p(state_dim=state_dim, action_dim=action_dim, param_dim=param_dim,
-                           max_action=max_action, h_dim=h_dim, tau=tau, device=device)
         replay_buffer = TrainingBuffer(state_dim=state_dim, action_dim=action_dim,
                                        device=device, max_size=int(5e6))
 
@@ -470,20 +438,6 @@ if __name__ == "__main__":
                           max_action=max_action, h_dim=h_dim, tau=tau, device=device)
         replay_buffer = TrainingBuffer(state_dim=state_dim, action_dim=action_dim,
                                        device=device, max_size=int(5e6))
-
-    elif agent_type == 'd4pg':
-        agent = D4PG(state_dim=state_dim, action_dim=action_dim, param_dim=param_dim,
-                     max_action=max_action, h_dim=h_dim, distributional=distributional,
-                     munchausen=munchausen, n_step=n_step, per=per, D2RL=D2RL,
-                     curiosity=[curiosity, curiosity], seed=seed, device=device)
-        if per:
-            from utils.utils import PrioritizedReplay as PriorBuffer
-            replay_buffer = PriorBuffer(batch_size=batch_size, device=device,
-                                        seed=seed, discount=discount, n_step=n_step)
-        else:
-            from utils.utils import ReplayBufferD4PG as D4PGBuffer
-            replay_buffer = D4PGBuffer(batch_size=batch_size, n_step=n_step,
-                                       device=device, seed=seed, discount=discount)
 
     elif agent_type == 'sunrise':
         agent = SunriseAgent(
@@ -500,7 +454,7 @@ if __name__ == "__main__":
         replay_buffer = None
 
     elif agent_type == 'hypEMBER':
-        agent = HyperSunriseAgent(
+        agent = HypEmberAgent(
             obs_space_size=state_dim, act_space_size=action_dim,
             log_std_low=args.log_std_low, log_std_high=args.log_std_high,
             ensemble_size=args.ensemble_size, ucb_bonus=args.ucb_bonus)
@@ -527,7 +481,7 @@ if __name__ == "__main__":
                   replay_buffer=replay_buffer)
 
     elif agent_type in SUNRISE_AGENTS:
-        learn_fn = learn_sunrise if agent_type == 'sunrise' else learn_hypersunrise
+        learn_fn = learn_sunrise if agent_type == 'sunrise' else learn_hypember
         train_sunrise(agent=agent, env=env, eval_env=eval_env,
                       max_episodes=max_episodes, max_steps=max_steps, warmup=warmup,
                       eval_int=eval_int, save_int=save_int, batch_size=batch_size,
