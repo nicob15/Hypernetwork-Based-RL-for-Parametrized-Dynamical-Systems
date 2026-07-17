@@ -9,7 +9,7 @@ We study the problem of controlling parametrized dynamical systems using deep re
 | Environment | Description |
 |---|---|
 | `KuramotoSivashinsky` | 1D Kuramoto-Sivashinsky PDE, controlled via actuators |
-| `Gyro` | 2D gyrotactic microswimmer navigation in a fluid flow |
+| `Gyro` | Particle Navigation in a Double-Gyre Flow |
 
 ## Agents
 
