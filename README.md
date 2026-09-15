@@ -1,6 +1,23 @@
 # Hypernetwork-Based Reinforcement Learning for Control of Parametrized Dynamical Systems
 
-This repository contains the code for the paper *"Hypernetwork-Based Reinforcement Learning for Control of Parametrized Dynamical Systems"*.
+This repository contains the code for the papers:
+- *HypeRL: Hypernetwork-Based Reinforcement Learning for Control of Parametrized Dynamical Systems*
+
+[![arXiv](https://img.shields.io/badge/PREPRINT-FF00FF)](https://arxiv.org/abs/2501.04538)
+
+<p align="center" width="100%">
+  <img width=80% src="/media/HypeRL.png" >
+  <br />
+</p>
+
+- *HypEMBER: Hypernetwork-based Ensemble for Robust Policy Learning of Parametrized Dynamical Systems*
+
+[![arXiv](https://img.shields.io/badge/PREPRINT-FF00FF)](https://arxiv.org/abs/2607.19628)
+
+<p align="center" width="100%">
+  <img width=80% src="/media/HypEMBER.png" >
+  <br />
+</p>
 
 We study the problem of controlling parametrized dynamical systems using deep reinforcement learning. The key idea is to use **hypernetworks** to generate the weights of a policy network conditioned on the system parameters, allowing a single agent to generalize across a family of systems without retraining.
 
@@ -51,11 +68,21 @@ Train on the Kuramoto-Sivashinsky environment:
 python train_ks.py --agent-type hypeRL_td3 --max-episodes 2000 --seed 1
 ```
 
+<p align="center" width="100%">
+  <img width=80% src="/media/KS.png" >
+  <br />
+</p>
+
 Train on the Gyro environment:
 
 ```bash
 python train_gyro.py --agent-type hypeRL_td3 --max-episodes 5000 --seed 1
 ```
+
+<p align="center" width="100%">
+  <img width=80% src="/media/gyre.png" >
+  <br />
+</p>
 
 ### Key arguments (`train_ks.py` / `train_gyro.py`)
 
@@ -84,3 +111,31 @@ Run `python train_ks.py --help` for the full list of arguments.
 ├── sunrise_gyro.py      # SUNRISE training — Gyro
 └── requirements.txt
 ```
+
+## Cite
+If you use this code for your work, please cite
+```bibtex
+@misc{botteghi2026hypemberhypernetworkbasedensemblerobust,
+      title={HypEMBER: Hypernetwork-based Ensemble for Robust Policy Learning of Parametrized Dynamical Systems}, 
+      author={Nicolò Botteghi and Gabriele Pascali and Urban Fasel and Andrea Manzoni},
+      year={2026},
+      eprint={2607.19628},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2607.19628}, 
+}
+
+@misc{botteghi2026hyperlhypernetworkbasedreinforcementlearning,
+      title={HypeRL: Hypernetwork-Based Reinforcement Learning for Control of Parametrized Dynamical Systems}, 
+      author={Nicolò Botteghi and Stefania Fresca and Mengwu Guo and Andrea Manzoni},
+      year={2026},
+      eprint={2501.04538},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2501.04538}, 
+}
+```
+
+## Hypernetwork-based Multi-Agent RL (HypeMARL)
+
+Curious about multi-agent RL for high-dimensional, parametric, and distributed systems? Check this out: https://github.com/nicob15/HypeMARL
